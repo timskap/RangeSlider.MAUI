@@ -15,7 +15,7 @@ public class ThumbBorderHandler : BorderHandler
             throw new InvalidOperationException($"{nameof(VirtualView)} must be set to create a {nameof(ContentViewGroup)}");
         }
 
-        ThumbFrameViewGroup viewGroup = new(Context)
+        ThumbBorderViewGroup viewGroup = new(Context)
         {
             CrossPlatformLayout = VirtualView
         };
@@ -24,7 +24,7 @@ public class ThumbBorderHandler : BorderHandler
         return viewGroup;
     }
 
-    private class ThumbFrameViewGroup(Context context) : ContentViewGroup(context)
+    private class ThumbBorderViewGroup(Context context) : ContentViewGroup(context)
     {
         public override bool OnInterceptTouchEvent(MotionEvent? e)
         {
