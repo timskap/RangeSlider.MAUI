@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
+using Microsoft.Maui.Controls.Shapes;
 using static System.Math;
 using static Microsoft.Maui.Controls.AbsoluteLayout;
-using Microsoft.Maui.Handlers;
 
 namespace PanRangeSlider;
 
@@ -329,13 +329,13 @@ public class RangeSlider : TemplatedView
 
     AbsoluteLayout? Control { get; set; }
 
-    Frame Track { get; } = CreateFrameElement<Frame>();
+    Border Track { get; } = CreateBorderElement<Border>();
 
-    Frame TrackHighlight { get; } = CreateFrameElement<Frame>();
+    Border TrackHighlight { get; } = CreateBorderElement<Border>();
 
-    Frame LowerThumb { get; } = CreateFrameElement<ThumbFrame>(IsThumbShadowSupported);
+    Border LowerThumb { get; } = CreateBorderElement<ThumbBorder>(IsThumbShadowSupported);
 
-    Frame UpperThumb { get; } = CreateFrameElement<ThumbFrame>(IsThumbShadowSupported);
+    Border UpperThumb { get; } = CreateBorderElement<ThumbBorder>(IsThumbShadowSupported);
 
     Label LowerValueLabel { get; } = CreateLabelElement();
 
@@ -411,13 +411,11 @@ public class RangeSlider : TemplatedView
         base.OnChildAdded(child);
     }
 
-    static Frame CreateFrameElement<TFrame>(bool hasShadow = false) where TFrame : Frame, new()
+    static Border CreateBorderElement<TBorder>(bool hasShadow = false) where TBorder : Border, new()
     {
-        var frame = new TFrame
+        TBorder border = new()
         {
-            Padding = 0,
-            HasShadow = false,
-            IsClippedToBounds = true
+            Padding = 0
         };
 
         if (hasShadow)
@@ -429,8 +427,15 @@ public class RangeSlider : TemplatedView
             // ShadowEffect.SetOffsetY(frame, 2);
         }
 
-        return frame;
+        return border;
     }
+
+    static IShape CreateRoundRectangleShape(CornerRadius cornerRadius)
+        => new RoundRectangle()
+        {
+            CornerRadius = cornerRadius
+        };
+
 
     static Label CreateLabelElement()
         => new Label
@@ -528,23 +533,23 @@ public class RangeSlider : TemplatedView
             upperThumbBorderColor = GetColorOrDefault(upperThumbBorderColor, defaultThumbColor);
         }
 
-        LowerThumb.BorderColor = lowerThumbBorderColor;
-        UpperThumb.BorderColor = upperThumbBorderColor;
+        LowerThumb.Stroke = lowerThumbBorderColor;
+        UpperThumb.Stroke = upperThumbBorderColor;
         LowerThumb.BackgroundColor = GetColorOrDefault(lowerThumbColor, Colors.White);
         UpperThumb.BackgroundColor = GetColorOrDefault(upperThumbColor, Colors.White);
         Track.BackgroundColor = GetColorOrDefault(TrackColor, Color.FromRgb(182, 182, 182));
         TrackHighlight.BackgroundColor = GetColorOrDefault(TrackHighlightColor, Color.FromRgb(46, 124, 246));
-        Track.BorderColor = GetColorOrDefault(TrackBorderColor, null);
-        TrackHighlight.BorderColor = GetColorOrDefault(TrackHighlightBorderColor, null);
+        Track.Stroke = GetColorOrDefault(TrackBorderColor, null);
+        TrackHighlight.Stroke = GetColorOrDefault(TrackHighlightBorderColor, null);
 
         var trackSize = TrackSize;
         var trackRadius = (float)GetDoubleOrDefault(TrackRadius, trackSize / 2);
         var lowerThumbSize = GetDoubleOrDefault(LowerThumbSize, ThumbSize);
         var upperThumbSize = GetDoubleOrDefault(UpperThumbSize, ThumbSize);
-        Track.CornerRadius = trackRadius;
-        TrackHighlight.CornerRadius = trackRadius;
-        LowerThumb.CornerRadius = (float)GetDoubleOrDefault(GetDoubleOrDefault(LowerThumbRadius, ThumbRadius), lowerThumbSize / 2);
-        UpperThumb.CornerRadius = (float)GetDoubleOrDefault(GetDoubleOrDefault(UpperThumbRadius, ThumbRadius), upperThumbSize / 2);
+        Track.StrokeShape = CreateRoundRectangleShape(trackRadius);
+        TrackHighlight.StrokeShape = CreateRoundRectangleShape(trackRadius);
+        LowerThumb.StrokeShape = CreateRoundRectangleShape((float)GetDoubleOrDefault(GetDoubleOrDefault(LowerThumbRadius, ThumbRadius), lowerThumbSize / 2));
+        UpperThumb.StrokeShape = CreateRoundRectangleShape((float)GetDoubleOrDefault(GetDoubleOrDefault(UpperThumbRadius, ThumbRadius), upperThumbSize / 2));
 
         LowerThumb.Content = LowerThumbView;
         UpperThumb.Content = UpperThumbView;
@@ -688,16 +693,9 @@ public class RangeSlider : TemplatedView
         => eventHandler?.Invoke(this, EventArgs.Empty);
 }
 
-sealed class ThumbFrame : Frame
+sealed class ThumbBorder : Border
 {
-    public ThumbFrame() 
-    {
-    }
-}
-
-sealed partial class ThumbFrameHandler : LayoutHandler
-{
-    public ThumbFrameHandler()
+    public ThumbBorder() 
     {
     }
 }

@@ -1,42 +1,45 @@
-
 using Android.Content;
 using Android.Views;
-using JetBrains.Annotations;
+using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
 
 namespace PanRangeSlider;
 
-sealed partial class ThumbFrameHandler
-{    
-	protected override LayoutViewGroup CreatePlatformView()
-	{
-		var viewGroup = new ThumbFrameViewGroup(Context!)
-		{
-			CrossPlatformLayout = VirtualView
-		};
-		viewGroup.SetClipChildren(false);
-		return viewGroup;
-	}
-
-	sealed class ThumbFrameViewGroup : LayoutViewGroup
+public class ThumbBorderHandler : BorderHandler
+{
+    // NOTE: Ripped from source https://github.com/dotnet/maui/blob/aa3f9868ac2f0a285b3e91af9d1f540cca5fd82a/src/Core/src/Handlers/Border/BorderHandler.Android.cs#L7.
+    protected override ContentViewGroup CreatePlatformView()
     {
-        public ThumbFrameViewGroup([NotNull] Context context) : base(context)
+        if (VirtualView == null)
         {
+            throw new InvalidOperationException($"{nameof(VirtualView)} must be set to create a {nameof(ContentViewGroup)}");
         }
 
-        public override bool OnTouchEvent(MotionEvent? e)
-		{
-			switch (e?.ActionMasked)
-			{
-				case MotionEventActions.Down:
-					Parent?.RequestDisallowInterceptTouchEvent(true);
-					break;
-				case MotionEventActions.Up:
-				case MotionEventActions.Cancel:
-					Parent?.RequestDisallowInterceptTouchEvent(false);
-					break;
-			}
-			return base.OnTouchEvent(e);
-		}
-	}
+        ThumbFrameViewGroup viewGroup = new(Context)
+        {
+            CrossPlatformLayout = VirtualView
+        };
+
+        viewGroup.SetLayerType(LayerType.Hardware, null);
+        return viewGroup;
+    }
+
+    private class ThumbFrameViewGroup(Context context) : ContentViewGroup(context)
+    {
+        public override bool OnInterceptTouchEvent(MotionEvent? e)
+        {
+            switch (e?.ActionMasked)
+            {
+                case MotionEventActions.Down:
+                    Parent?.RequestDisallowInterceptTouchEvent(true);
+                    break;
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    Parent?.RequestDisallowInterceptTouchEvent(false);
+                    break;
+            }
+
+            return base.OnInterceptTouchEvent(e);
+        }
+    }
 }

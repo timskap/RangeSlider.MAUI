@@ -1,5 +1,4 @@
-﻿
-namespace PanRangeSlider;
+﻿namespace PanRangeSlider;
 
 public static class AppBuilderExtensions
 {
@@ -9,9 +8,9 @@ public static class AppBuilderExtensions
         
         return builder.ConfigureMauiHandlers(handlers =>
         {
-#if ANDROID
-            handlers.AddHandler(typeof(ThumbFrame), typeof(ThumbFrameHandler));
-#endif
+            #if ANDROID
+            handlers.AddHandler<ThumbBorder, ThumbBorderHandler>();
+            #endif
         });
     }
 }
