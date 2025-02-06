@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Microsoft.Maui.Controls.Shapes;
 using static System.Math;
 using static Microsoft.Maui.Controls.AbsoluteLayout;
@@ -30,6 +30,71 @@ public class RangeSlider : TemplatedView
     public event EventHandler? LowerDragCompleted;
 
     public event EventHandler? UpperDragCompleted;
+
+    public static BindableProperty ThumbCornerRadiusProperty =
+    BindableProperty.Create(nameof(ThumbCornerRadius), typeof(double), typeof(RangeSlider), 10.0, propertyChanged: OnLayoutPropertyChanged);
+
+public static BindableProperty LowerThumbCornerRadiusProperty =
+    BindableProperty.Create(nameof(LowerThumbCornerRadius), typeof(double), typeof(RangeSlider), -1.0, propertyChanged: OnLayoutPropertyChanged);
+
+public static BindableProperty UpperThumbCornerRadiusProperty =
+    BindableProperty.Create(nameof(UpperThumbCornerRadius), typeof(double), typeof(RangeSlider), -1.0, propertyChanged: OnLayoutPropertyChanged);
+
+public double ThumbCornerRadius
+{
+    get => (double)GetValue(ThumbCornerRadiusProperty);
+    set => SetValue(ThumbCornerRadiusProperty, value);
+}
+
+public double LowerThumbCornerRadius
+{
+    get => (double)GetValue(LowerThumbCornerRadiusProperty);
+    set => SetValue(LowerThumbCornerRadiusProperty, value);
+}
+
+public double UpperThumbCornerRadius
+{
+    get => (double)GetValue(UpperThumbCornerRadiusProperty);
+    set => SetValue(UpperThumbCornerRadiusProperty, value);
+}
+
+// Track Corner Radius
+public static BindableProperty TrackCornerRadiusProperty =
+    BindableProperty.Create(nameof(TrackCornerRadius), typeof(double), typeof(RangeSlider), 10.0, propertyChanged: OnLayoutPropertyChanged);
+
+public static BindableProperty TrackHighlightCornerRadiusProperty =
+    BindableProperty.Create(nameof(TrackHighlightCornerRadius), typeof(double), typeof(RangeSlider), 10.0, propertyChanged: OnLayoutPropertyChanged);
+
+// Track Background Color
+public static BindableProperty TrackBackgroundColorProperty =
+    BindableProperty.Create(nameof(TrackBackgroundColor), typeof(Color), typeof(RangeSlider), Colors.Gray, propertyChanged: OnLayoutPropertyChanged);
+
+public static BindableProperty TrackHighlightBackgroundColorProperty =
+    BindableProperty.Create(nameof(TrackHighlightBackgroundColor), typeof(Color), typeof(RangeSlider), Colors.Blue, propertyChanged: OnLayoutPropertyChanged);
+
+public double TrackCornerRadius
+{
+    get => (double)GetValue(TrackCornerRadiusProperty);
+    set => SetValue(TrackCornerRadiusProperty, value);
+}
+
+public double TrackHighlightCornerRadius
+{
+    get => (double)GetValue(TrackHighlightCornerRadiusProperty);
+    set => SetValue(TrackHighlightCornerRadiusProperty, value);
+}
+
+public Color TrackBackgroundColor
+{
+    get => (Color)GetValue(TrackBackgroundColorProperty);
+    set => SetValue(TrackBackgroundColorProperty, value);
+}
+
+public Color TrackHighlightBackgroundColor
+{
+    get => (Color)GetValue(TrackHighlightBackgroundColorProperty);
+    set => SetValue(TrackHighlightBackgroundColorProperty, value);
+}
 
     public static BindableProperty MinimumValueProperty
         = BindableProperty.Create(nameof(MinimumValue), typeof(double), typeof(RangeSlider), .0, propertyChanged: OnMinimumMaximumValuePropertyChanged);
@@ -411,24 +476,18 @@ public class RangeSlider : TemplatedView
         base.OnChildAdded(child);
     }
 
-    static Border CreateBorderElement<TBorder>(bool hasShadow = false) where TBorder : Border, new()
+static Border CreateBorderElement<TBorder>(bool hasShadow = false) where TBorder : Border, new()
+{
+    TBorder border = new()
     {
-        TBorder border = new()
+        Padding = 0,
+        StrokeShape = new RoundRectangle
         {
-            Padding = 0
-        };
-
-        if (hasShadow)
-        {
-            // TODO: Uncomment when shadow is supported by these platforms
-            // ShadowEffect.SetColor(frame, Color.Black);
-            // ShadowEffect.SetOpacity(frame, .25);
-            // ShadowEffect.SetRadius(frame, 3);
-            // ShadowEffect.SetOffsetY(frame, 2);
+            CornerRadius = new CornerRadius(10) // Adjust for rounded corners
         }
-
-        return border;
-    }
+    };
+    return border;
+}
 
     static IShape CreateRoundRectangleShape(CornerRadius cornerRadius)
         => new RoundRectangle()
@@ -546,11 +605,34 @@ public class RangeSlider : TemplatedView
         var trackRadius = (float)GetDoubleOrDefault(TrackRadius, trackSize / 2);
         var lowerThumbSize = GetDoubleOrDefault(LowerThumbSize, ThumbSize);
         var upperThumbSize = GetDoubleOrDefault(UpperThumbSize, ThumbSize);
-        Track.StrokeShape = CreateRoundRectangleShape(trackRadius);
-        TrackHighlight.StrokeShape = CreateRoundRectangleShape(trackRadius);
-        LowerThumb.StrokeShape = CreateRoundRectangleShape((float)GetDoubleOrDefault(GetDoubleOrDefault(LowerThumbRadius, ThumbRadius), lowerThumbSize / 2));
-        UpperThumb.StrokeShape = CreateRoundRectangleShape((float)GetDoubleOrDefault(GetDoubleOrDefault(UpperThumbRadius, ThumbRadius), upperThumbSize / 2));
+        var trackCornerRadius = GetDoubleOrDefault(TrackCornerRadius, TrackSize / 2);
+        var trackHighlightCornerRadius = GetDoubleOrDefault(TrackHighlightCornerRadius, TrackSize / 2);
 
+        Track.StrokeShape = new RoundRectangle
+        {
+            CornerRadius = new CornerRadius(trackCornerRadius)
+        };
+
+        TrackHighlight.StrokeShape = new RoundRectangle
+        {
+            CornerRadius = new CornerRadius(trackHighlightCornerRadius)
+        };
+
+        // Apply Background Colors
+        Track.BackgroundColor = TrackBackgroundColor;
+        TrackHighlight.BackgroundColor = TrackHighlightBackgroundColor;
+        var lowerCornerRadius = GetDoubleOrDefault(GetDoubleOrDefault(LowerThumbCornerRadius, ThumbCornerRadius), 10);
+        var upperCornerRadius = GetDoubleOrDefault(GetDoubleOrDefault(UpperThumbCornerRadius, ThumbCornerRadius), 10);
+
+        LowerThumb.StrokeShape = new RoundRectangle
+        {
+            CornerRadius = new CornerRadius(lowerCornerRadius)
+        };
+
+        UpperThumb.StrokeShape = new RoundRectangle
+        {
+            CornerRadius = new CornerRadius(upperCornerRadius)
+        };
         LowerThumb.Content = LowerThumbView;
         UpperThumb.Content = UpperThumbView;
 
